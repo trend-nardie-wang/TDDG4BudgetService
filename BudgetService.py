@@ -1,34 +1,46 @@
+from datetime import date
+from calendar import monthrange
+
 class Budget:
     def __init__(self, year_month: str, amount: float):
-        self.year_month = year_month  # Format: 'YYYY-MM'
+        self.year_month = year_month
         self.amount = amount
-
 class BudgetRepo:
     def __init__(self):
-        # Sample data for demonstration purposes
-        self.budgets = [
-            Budget("2023-01", 1000.0),
-            Budget("2023-02", 1500.0),
-            Budget("2023-03", 2000.0),
-            Budget("2023-04", 2500.0),
-            Budget("2023-05", 3000.0),
-            Budget("2023-06", 3500.0)
-        ]
+        self.budgets = []
 
-    def get_all(self):
+    def get_all(self) -> list[Budget]:
         return self.budgets
 
+budget_repo = BudgetRepo()
+
 class BudgetService:
-    def __init__(self, budget_repo: BudgetRepo):
-        self.budget_repo = budget_repo
+    def __init__(self):
+        pass
 
-    def total_amount(self, start: str, end: str) -> float:
+    def total_amount(self, start: date, end: date) -> float:
         total = 0.0
-        budgets = self.budget_repo.get_all()
+        budgets = budget_repo.get_all()
 
-        for budget in budgets:
-            if start <= budget.year_month <= end:
-                total += budget.amount
+        if end < start:
+            return 0.0
+
+        for month in range(start.month, end.month + 1):
+            for db_budget in budgets:
+                y = int(db_budget.year_month[:4])
+                m = int(db_budget.year_month[4:6])
+                if m == month:
+                    if m == start.month:
+                        if m == end.month:
+                            return (end.day - start.day + 1) / monthrange(y, m)[1] * db_budget.amount
+                        total += (monthrange(y, m)[1] - start.day + 1) / monthrange(y, m)[1] * db_budget.amount
+                        print("first total", total)
+                        print("mongh", m)
+                    elif m == end.month:
+                        total += (end.day / monthrange(y, m)[1]) * db_budget.amount
+                    else:
+                        total += db_budget.amount
+                    # total += (end.day - start.day + 1) / monthrange(year, month)[1] * db_budget.amount
 
         return total
 
